@@ -1,10 +1,12 @@
 # Load the shiny, ggplot2, and dplyr libraries
-
+library(shiny)
+library(ggplot2)
+library(dplyr)
 
 # You will once again be working with the `diamonds` data set provided by ggplot2
 # Use dplyr's `sample_n()` function to get a random 3000 rows from the data set
 # Store this sample in a variable `diamonds.sample`
-
+diamonds <- sample_n(diamonds, 3000)
 
 # For convenience store the `range()` of values for the `price` and `carat` values
 # for the ENTIRE diamonds dataset.
@@ -12,7 +14,20 @@
 
 
 # Define a UI using a fluidPage layout
-
+ui <- fluidPage(
+    titlePanel('Diamond Viewer', 'Diamond Viewer'),
+    sidebarLayout(
+        sidebarPanel(
+            sliderInput('price', 'Price (in dollars)', value = 1500, min = min(diamonds$price), max = max(diamonds$price)),
+            sliderInput('carat', 'Carats', value = 1, min = min(diamonds$carat), max = max(diamonds$carat)),
+            checkboxInput('showTrend', 'Show Trend Line', value = TRUE),
+            selectInput('facetBy', 'Facet By', choices = c('cut', 'clarity', 'color'))
+        ),
+        mainPanel(
+            plotOutput('plot')
+        )
+     )
+)
 
   # Include a `titlePanel` with the title "Diamond Viewer"
 
@@ -49,7 +64,13 @@
 
 
 # Define a Server function for the app
-
+server <- function(input, output){
+    output$plot <- renderPlot({
+        diamonds.filter <- diamonds %>% filter(price == input$price) %>% filter(carat == input$carat)
+        View(diamonds.filter)
+        plot(diamonds.filter$carat, diamonds.filter$price)
+    })
+}
 
   # Assign a reactive `renderPlot()` function to the outputted `plot`
 
@@ -78,7 +99,7 @@
 
 
 # Create a new `shinyApp()` using the above ui and server
-
+shinyApp(ui = ui, server = server)
 
 ## Double Bonus: For fun, can you make a similar browser for the `mpg` data set?
 ## it makes the bonus data table a lot more useful
